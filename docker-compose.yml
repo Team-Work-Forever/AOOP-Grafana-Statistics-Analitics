@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  grafana-web:
+    image: grafana/grafana
+    ports: 
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - stg:/var/lib/grafana
+      - ./grafana_dataset:/dataset
+      - ./config/grafana.ini:/etc/grafana/grafana.ini
+    
+  db:
+    image: postgres:alpine3.18
+    ports: 
+      - "${DB_PORT}:5432"
+    env_file:
+      - .env
+    volumes:
+      - ./grafana_dataset:/dataset
+      - dstg:/var/lib/postgresql/shared-data/
+      - ./migrations:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  stg:
+  dstg:
